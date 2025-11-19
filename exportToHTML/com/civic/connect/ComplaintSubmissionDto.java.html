@@ -1,0 +1,32 @@
+<html>
+<head>
+<title>ComplaintSubmissionDto.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #7a7e85;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+ComplaintSubmissionDto.java</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">com</span><span class="s2">.</span><span class="s1">civic</span><span class="s2">.</span><span class="s1">connect</span><span class="s2">;</span>
+
+<span class="s3">// 2. ComplaintSubmissionDto (Data Transfer Object for Submission)</span>
+<span class="s3">// This is used to capture data coming IN from the frontend submission form.</span>
+<span class="s3">// The fields here match what the JavaScript 'fetch' call sends in its body.</span>
+<span class="s0">public </span><span class="s1">record ComplaintSubmissionDto</span><span class="s2">(</span>
+        <span class="s1">String userId</span><span class="s2">,</span>
+        <span class="s1">String title</span><span class="s2">,</span>
+        <span class="s1">String location</span><span class="s2">,</span>
+        <span class="s1">String photoName</span><span class="s2">,</span>
+        <span class="s1">String organizationContext</span>
+<span class="s2">) {}</span>
+</pre>
+</body>
+</html>

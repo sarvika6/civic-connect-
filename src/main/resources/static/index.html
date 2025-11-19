@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Civic Connect: Urban Problem Reporter</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        /* Custom Styles for Muted Palette and Interactivity */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fb; /* Very Light Blue-Gray Background */
+        }
+        .app-container {
+            max-width: 450px; /* Simulate mobile app width */
+            min-height: 80vh;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary {
+            background-color: #06b6d4; /* Muted Cyan-500 */
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+        .btn-primary:hover {
+            background-color: #0891b2; /* Darker Cyan */
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(6, 182, 212, 0.4);
+        }
+        .reward-pulse {
+            animation: pulse-glow 2s infinite;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.7); }
+            50% { box-shadow: 0 0 0 10px rgba(251, 191, 36, 0); }
+        }
+        .chat-message {
+            max-width: 80%;
+            border-radius: 1rem;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            transition: opacity 0.3s;
+        }
+        .chat-user {
+            background-color: #d1d5db; /* Light Gray */
+            align-self: flex-end;
+        }
+        .chat-assistant {
+            background-color: #e0f2f7; /* Very Light Cyan */
+            align-self: flex-start;
+        }
+        /* Custom styles for mock charts */
+        .chart-bar {
+            height: 1rem;
+            border-radius: 0.25rem;
+            transition: width 0.5s ease-out;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+
+    <!-- Main Application Container -->
+    <div id="app" class="app-container bg-white rounded-xl overflow-hidden flex flex-col">
+        
+        <!-- Header (Fixed at Top) -->
+        <header id="header" class="p-4 text-center border-b border-gray-100">
+            <h1 class="text-xl font-black text-gray-700">Civic Connect</h1>
+        </header>
+
+        <!-- Main Content (Swapping Views) -->
+        <main id="content" class="flex-grow p-4 overflow-y-auto">
+            <!-- Dynamic content will be injected here -->
+        </main>
+
+        <!-- Navigation/Footer (Fixed at Bottom - Only for Citizen Flow) -->
+        <footer id="nav" class="flex justify-around p-3 bg-white border-t border-gray-100 hidden">
+            <button onclick="router.navigate('dashboard')" class="text-gray-500 hover:text-cyan-600 focus:outline-none flex flex-col items-center">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-10v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                <span class="text-xs mt-1 font-medium">Home</span>
+            </button>
+            <button onclick="router.navigate('submission')" class="text-gray-500 hover:text-cyan-600 focus:outline-none flex flex-col items-center">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span class="text-xs mt-1 font-medium">Report</span>
+            </button>
+            <button onclick="router.navigate('chatbot')" class="text-gray-500 hover:text-cyan-600 focus:outline-none flex flex-col items-center">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.692C5.353 15.635 6 14.1 6 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                <span class="text-xs mt-1 font-medium">Chatbot</span>
+            </button>
+            <button onclick="router.navigate('org_login')" class="text-gray-500 hover:text-cyan-600 focus:outline-none flex flex-col items-center">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-3m2 0h2"></path></svg>
+                <span class="text-xs mt-1 font-medium">Org</span>
+            </button>
+        </footer>
+
+    </div>
+
+    <script>
+        // --- 1. MOCK SERVICE LOGIC (Backend Simulation) ---
+        
+        const USER_ID = "CITIZEN-001";
+        const STORAGE_KEY = 'civicConnectData';
+        
+        // Initial list of organizations - Now includes a mock internal organization (University)
+        const initialOrganizations = [
+            { id: 'pubworks', name: 'Public Works', password: 'password' },
+            { id: 'sanitation', name: 'Sanitation Dept', password: 'password' },
+            { id: 'university', name: 'University', password: 'student' } // New internal organization
+        ];
+
+        let state = {
+            complaints: [],
+            userRewards: { totalPoints: 0 },
+            organizations: initialOrganizations, 
+            currentView: 'home',
+            orgLoggedIn: null // Tracks the logged-in organization object
+        };
+
+        // Mock AI Issue Data
+        const ISSUE_DATA = [
+            { key: "pothole", type: "Urgent Infrastructure", dept: "Public Works", basePriority: 85, deptColor: '#4f46e5' }, // Indigo
+            { key: "graffiti", type: "Minor Vandalism", dept: "Sanitation/Police", basePriority: 40, deptColor: '#f97316' }, // Orange
+            { key: "street_light", type: "Safety Infrastructure", dept: "Electrical/Power", basePriority: 70, deptColor: '#facc15' }, // Yellow
+            { key: "trash", type: "Sanitation Issue", dept: "Sanitation Dept", basePriority: 55, deptColor: '#10b981' }, // Emerald
+            { key: "water_leak", type: "Critical Utility", dept: "Water Authority", basePriority: 90, deptColor: '#0ea5e9' }, // Sky
+            { key: "broken_light", type: "Campus Maintenance", dept: "University", basePriority: 60, deptColor: '#9333ea' }, // Violet for campus issues
+            { key: "other", type: "General Inquiry", dept: "City Services", basePriority: 30, deptColor: '#6b7280' }  // Gray
+        ];
+
+        // --- Data Persistence ---
+        const loadState = () => {
+            const storedData = localStorage.getItem(STORAGE_KEY);
+            if (storedData) {
+                const loadedState = JSON.parse(storedData);
+                state.complaints = loadedState.complaints || [];
+                state.userRewards = loadedState.userRewards || { totalPoints: 0 };
+                // Load organizations, if empty, use initialOrganizations defined above
+                state.organizations = loadedState.organizations || initialOrganizations; 
+            }
+        };
+
+        const saveState = () => {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                complaints: state.complaints,
+                userRewards: state.userRewards,
+                organizations: state.organizations 
+            }));
+        };
+
+        // --- AI Logic Simulation ---
+
+        const simulateAIDetection = (photoName, context) => {
+            const lowerName = photoName.toLowerCase();
+            let issue = ISSUE_DATA.find(i => lowerName.includes(i.key));
+
+            // If it's a University context, force the department to University (e.g., all reports go to them first)
+            if (context === 'university' && !issue) {
+                 issue = ISSUE_DATA.find(i => i.key === 'broken_light'); // Default campus issue
+            }
+            
+            if (!issue) {
+                issue = ISSUE_DATA.find(i => i.key === 'other');
+            }
+
+            // Assign department based on context or default routing
+            const department = (context !== 'City-wide') ? context.charAt(0).toUpperCase() + context.slice(1) : issue.dept;
+
+            const severityBoost = Math.floor(Math.random() * 15);
+            const priorityScore = Math.min(100, issue.basePriority + severityBoost);
+            const deptColor = (context !== 'City-wide') ? '#9333ea' : issue.deptColor; // Use a distinct color for internal orgs
+
+            return {
+                type: issue.type,
+                department: department,
+                priorityScore: priorityScore,
+                deptColor: deptColor
+            };
+        };
+
+        const calculateReward = (priority) => {
+            if (priority >= 80) return 30; // $30 coupon
+            if (priority >= 60) return 15; // $15 coupon
+            return 5; // $5 coupon
+        };
+
+        // --- Complaint Model ---
+        class Complaint {
+            constructor(userId, title, location, photoName, organizationContext) {
+                this.id = Math.random().toString(36).substring(2, 10);
+                this.userId = userId;
+                this.title = title;
+                this.location = location;
+                this.photoName = photoName;
+                this.status = "Submitted";
+                this.submittedAt = new Date().toLocaleString();
+                this.organizationContext = organizationContext; // New field
+
+                const aiResult = simulateAIDetection(photoName, organizationContext);
+                this.type = aiResult.type;
+                this.department = aiResult.department;
+                this.priorityScore = aiResult.priorityScore;
+                this.rewardValue = calculateReward(this.priorityScore);
+                this.deptColor = aiResult.deptColor;
+                
+                // Mock resolution time for analytics
+                const baseDays = this.priorityScore > 70 ? 2 : this.priorityScore > 50 ? 5 : 10;
+                this.mockResolutionDays = Math.max(1, baseDays + Math.floor(Math.random() * 5) - 2); 
+            }
+            getGeolocation() {
+                // Mock Geolocation based on ID
+                const hash = this.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+                const lat = 34.000 + (hash % 1000) / 10000.0;
+                const lon = -118.000 + (hash % 1000) / 10000.0;
+                return `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+            }
+        }
+
+        // --- Core Application Logic ---
+
+        const submitComplaint = (title, location, photoName, organizationContext) => {
+            const newComplaint = new Complaint(USER_ID, title, location, photoName, organizationContext);
+            state.complaints.unshift(newComplaint); // Add to the front
+            state.userRewards.totalPoints += newComplaint.rewardValue;
+            saveState();
+            return newComplaint;
+        };
+
+        const updateComplaintStatus = (complaintId, newStatus) => {
+            const complaint = state.complaints.find(c => c.id === complaintId);
+            if (complaint) {
+                complaint.status = newStatus;
+                saveState();
+                return true;
+            }
+            return false;
+        };
+
+        const getComplaintById = (id) => {
+            return state.complaints.find(c => c.id === id);
+        };
+        
+        const getUserComplaints = (userId) => {
+            return state.complaints.filter(c => c.userId === userId);
+        };
+
+
+        // --- 2. ROUTING AND UI RENDERING ---
+
+        const contentDiv = document.getElementById('content');
+        const navDiv = document.getElementById('nav');
+        const headerDiv = document.getElementById('header');
+
+        const router = {
+            navigate: (view, data = null) => {
+                state.currentView = view;
+                contentDiv.scrollTop = 0; // Scroll to top on navigation
+                
+                // Update Header
+                const viewTitles = {
+                    'home': 'Civic Connect',
+                    'submission': 'New Report',
+                    'dashboard': 'Citizen Dashboard',
+                    'chatbot': 'Tracking Chatbot',
+                    'org_login': 'Authority Login',
+                    'org_register': 'Organization Registration',
+                    'org_dashboard': `Authority Dashboard: ${state.orgLoggedIn ? state.orgLoggedIn.name : 'Menu'}`,
+                    'org_complaint_management': `Manage Reports: ${state.orgLoggedIn ? state.orgLoggedIn.name : 'View'}`,
+                    'org_analytics': `Analytics: ${state.orgLoggedIn ? state.orgLoggedIn.name : 'Data'}`
+                };
+                headerDiv.querySelector('h1').textContent = viewTitles[view] || 'Civic Connect';
+
+                // Render the new view
+                switch (view) {
+                    case 'home':
+                        renderHome();
+                        navDiv.classList.add('hidden');
+                        break;
+                    case 'submission':
+                        renderSubmission();
+                        navDiv.classList.remove('hidden');
+                        break;
+                    case 'dashboard':
+                        renderDashboard();
+                        navDiv.classList.remove('hidden');
+                        break;
+                    case 'chatbot':
+                        renderChatbot();
+                        navDiv.classList.remove('hidden');
+                        break;
+                    case 'org_login':
+                        renderOrgLogin();
+                        navDiv.classList.remove('hidden');
+                        break;
+                    case 'org_register':
+                        renderOrgRegistration();
+                        navDiv.classList.remove('hidden');
+                        break;
+                    case 'org_dashboard':
+                        renderOrgDashboard(data); // New Menu Dashboard
+                        navDiv.classList.add('hidden');
+                        break;
+                    case 'org_complaint_management': 
+                        renderOrgComplaintManagement();
+                        navDiv.classList.add('hidden');
+                        break;
+                    case 'org_analytics': // New Analytics View
+                        renderOrgAnalytics();
+                        navDiv.classList.add('hidden');
+                        break;
+                    default:
+                        renderHome();
+                }
+            }
+        };
+        
+        // Helper function for interactive buttons
+        const createButton = (text, onClick, styleClass, icon = null) => `
+            <button onclick="${onClick}"
+                class="w-full p-4 font-bold text-lg rounded-xl shadow-md transition duration-200 transform hover:scale-[1.01] ${styleClass}">
+                ${icon || ''}
+                ${text}
+            </button>
+        `;
+
+        // --- View 1: Home/Landing Page ---
+        const renderHome = () => {
+            contentDiv.innerHTML = `
+                <div class="flex flex-col items-center justify-center h-full min-h-[500px] p-6 text-center">
+                    <svg class="w-16 h-16 text-cyan-600 mb-4 animate-bounce-slow" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    <h2 class="text-3xl font-extrabold text-gray-800 mb-2">Welcome to Civic Connect</h2>
+                    <p class="text-gray-500 mb-10">Your direct line to city and organization authorities for problem resolution.</p>
+                    
+                    <div class="space-y-4 w-full">
+                        ${createButton('Submit Complaint (Citizen)', `router.navigate('submission')`, 'btn-primary text-white')}
+                        ${createButton('Chatbot: Check Status', `router.navigate('chatbot')`, 'bg-gray-200 text-gray-700 hover:bg-gray-300')}
+                        <hr class="border-gray-100 my-4">
+                        ${createButton('Authority Login', `router.navigate('org_login')`, 'bg-red-500 text-white hover:bg-red-600')}
+                        ${createButton('Register Organization', `router.navigate('org_register')`, 'bg-red-100 text-red-600 hover:bg-red-200')}
+                    </div>
+                </div>
+            `;
+        };
+        
+        // --- View 3: Complaint Submission (Updated with Organization Context) ---
+        const renderSubmission = () => {
+             // Get registered organizations excluding default city departments for the context dropdown
+            const orgContexts = state.organizations.filter(o => o.id !== 'pubworks' && o.id !== 'sanitation').map(org => `
+                <option value="${org.id}">${org.name} Issues</option>
+            `).join('');
+
+            contentDiv.innerHTML = `
+                <div class="space-y-4">
+                    <div id="submissionMessage" class="hidden p-3 rounded-lg font-medium"></div>
+
+                    <div class="bg-white p-5 rounded-xl shadow-lg space-y-4">
+                        <h3 class="text-lg font-bold text-cyan-600">Issue Details</h3>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Reporting Context</label>
+                            <select id="organizationContext" class="mt-1 p-2 w-full border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500">
+                                <option value="City-wide">City-wide Issues (Potholes, City Lights)</option>
+                                ${orgContexts}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Issue Title</label>
+                            <input id="title" type="text" placeholder="e.g., Broken light in Block 3" class="mt-1 p-2 w-full border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Location (Address or Block/Room)</label>
+                            <input id="location" type="text" placeholder="e.g., University Block 3" class="mt-1 p-2 w-full border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Photo Key (Simulated AI Input)</label>
+                            <select id="photoName" class="mt-1 p-2 w-full border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500">
+                                <option value="broken_light_image.jpg">Broken Light (Internal/Campus)</option>
+                                <option value="pothole_image.jpg">Pothole (City)</option>
+                                <option value="water_leak.png">Water Leak (Utility)</option>
+                                <option value="street_light_out.jpeg">Street Light Out (Safety)</option>
+                                <option value="trash_pile.jpg">Excessive Trash (Sanitation)</option>
+                                <option value="graffiti_tag.png">Graffiti (Vandalism)</option>
+                                <option value="other_issue.gif">Other (General)</option>
+                            </select>
+                        </div>
+                        ${createButton('Submit Report', 'handleSubmission()', 'btn-primary text-white mt-4')}
+                    </div>
+                </div>
+            `;
+        };
+
+        const handleSubmission = () => {
+            const title = document.getElementById('title').value.trim();
+            const location = document.getElementById('location').value.trim();
+            const photoName = document.getElementById('photoName').value;
+            const organizationContext = document.getElementById('organizationContext').value; // New context
+            const msgDiv = document.getElementById('submissionMessage');
+            
+            if (!title || !location) {
+                msgDiv.className = 'p-3 rounded-lg font-medium text-red-700 bg-red-100 block';
+                msgDiv.textContent = 'Please enter both a Title and Location.';
+                return;
+            }
+
+            const newComplaint = submitComplaint(title, location, photoName, organizationContext);
+            
+            msgDiv.className = 'p-3 rounded-lg font-medium text-green-700 bg-green-100 block';
+            msgDiv.innerHTML = `
+                <p>✅ **SUCCESS!** Your report was submitted to **${newComplaint.department}**.</p>
+                <p class="text-sm mt-1">AI Priority Score: <span class="font-bold">${newComplaint.priorityScore}</span></p>
+                <p class="text-sm">Context: <span class="font-bold">${organizationContext === 'City-wide' ? 'City-wide' : state.organizations.find(o => o.id === organizationContext)?.name || 'Unknown'}</span></p>
+                <p class="text-sm">You earned a **$${newComplaint.rewardValue} Gift Card!** Check your dashboard.</p>
+            `;
+
+            // Clear input fields (except the dropdown)
+            document.getElementById('title').value = '';
+            document.getElementById('location').value = '';
+
+            // Automatically switch to dashboard after a short delay to show result
+            setTimeout(() => {
+                router.navigate('dashboard');
+            }, 3000);
+        };
+
+        // --- View 2: Citizen Dashboard (Unchanged) ---
+        const renderDashboard = () => {
+            const userComplaints = getUserComplaints(USER_ID);
+            
+            // Build Complaints HTML
+            const complaintsHtml = userComplaints.length === 0 
+                ? '<p class="text-center text-gray-500 py-8">You have not submitted any complaints yet. Start reporting!</p>'
+                : userComplaints.map(c => `
+                    <div class="p-3 mb-3 border-l-4 rounded-lg shadow-sm bg-white border-[${c.deptColor}]">
+                        <div class="flex justify-between items-start">
+                            <p class="font-bold text-gray-700">${c.title}</p>
+                            <span class="text-xs font-semibold px-2 py-0.5 rounded-full text-white ${c.status === 'Resolved' ? 'bg-green-500' : c.status === 'In Progress' ? 'bg-amber-500' : 'bg-gray-500'}">${c.status}</span>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">ID: <span class="font-mono">${c.id}</span> | Priority: <span class="font-bold text-red-600">${c.priorityScore}</span></p>
+                        <p class="text-xs text-gray-500">Dept: ${c.department} | Context: ${c.organizationContext}</p>
+                        <p class="text-xs text-gray-400 mt-1">Submitted: ${c.submittedAt}</p>
+                    </div>
+                `).join('');
+
+            contentDiv.innerHTML = `
+                <div class="space-y-6">
+                    <!-- Rewards Card (Animated) -->
+                    <div id="rewardsCard" class="bg-white p-5 rounded-xl shadow-lg border-2 border-amber-300 reward-pulse">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-xl font-semibold text-amber-600">Rewards Earned 🎁</h3>
+                            <p class="text-sm text-gray-500">Total Value (Coupons/Gift Cards)</p>
+                        </div>
+                        <p class="text-5xl font-extrabold text-amber-500 text-center mt-3">$${state.userRewards.totalPoints}</p>
+                    </div>
+
+                    <!-- Complaints List -->
+                    <div class="bg-white p-4 rounded-xl shadow-lg">
+                        <h3 class="text-xl font-semibold text-gray-700 border-b pb-2 mb-3">My Reports (${userComplaints.length})</h3>
+                        <div class="space-y-3">
+                            ${complaintsHtml}
+                        </div>
+                    </div>
+                </div>
+            `;
+        };
+        
+        // --- View 4: Chatbot (Unchanged) ---
+        const renderChatbot = () => {
+            contentDiv.innerHTML = `
+                <div class="h-full flex flex-col">
+                    <div id="chatHistory" class="flex-grow flex flex-col space-y-2 overflow-y-auto p-2 bg-gray-50 rounded-lg mb-3 shadow-inner">
+                        <div class="chat-message chat-assistant self-start">
+                            Hello! I am the Civic Connect tracking bot. I can check the status of any complaint for you.
+                        </div>
+                        <div class="chat-message chat-assistant self-start">
+                            To check status, type: <span class="font-mono text-xs">Check ID [8-character ID]</span>.
+                        </div>
+                    </div>
+                    <div class="flex space-x-2">
+                        <input id="chatInput" type="text" placeholder="Type your question or Complaint ID..." class="flex-grow p-3 border border-gray-300 rounded-lg focus:ring-cyan-500 focus:border-cyan-500">
+                        <button onclick="handleChatInput()" class="bg-cyan-600 text-white p-3 rounded-lg font-semibold hover:bg-cyan-700 transition">Send</button>
+                    </div>
+                </div>
+            `;
+            // Ensure scroll is at the bottom initially
+            const chatHistory = document.getElementById('chatHistory');
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        };
+
+        const handleChatInput = () => {
+            const inputField = document.getElementById('chatInput');
+            const message = inputField.value.trim();
+            const chatHistory = document.getElementById('chatHistory');
+            
+            if (!message) return;
+
+            // Display user message
+            chatHistory.innerHTML += `<div class="chat-message chat-user self-end">${message}</div>`;
+            inputField.value = '';
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+
+            // Simulate assistant typing delay
+            setTimeout(() => {
+                const response = simulateChatbotResponse(message);
+                chatHistory.innerHTML += `<div class="chat-message chat-assistant self-start">${response}</div>`;
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+            }, 500);
+        };
+
+        const simulateChatbotResponse = (message) => {
+            const lowerMessage = message.toLowerCase();
+            
+            // 1. Complaint Status Check Logic
+            if (lowerMessage.includes("check id")) {
+                const idMatch = lowerMessage.match(/[a-z0-9]{8}/);
+                const id = idMatch ? idMatch[0] : null;
+                
+                if (id) {
+                    const c = getComplaintById(id);
+                    if (c) {
+                        return `The report (ID: <span class="font-mono">${id}</span>) about "${c.title}" is currently **${c.status}**. It was auto-routed to **${c.department}** (Context: ${c.organizationContext}).`;
+                    } else {
+                        return `I could not find a complaint matching the ID: <span class="font-mono text-red-500">${id}</span>. Please verify the ID.`;
+                    }
+                } else {
+                    return "Please provide a valid 8-character Complaint ID after 'Check ID'.";
+                }
+            }
+            
+            // 2. General Responses
+            if (lowerMessage.includes("reward") || lowerMessage.includes("coupon")) {
+                return `Your total rewards balance is **$${state.userRewards.totalPoints}**. These are earned as gift cards or coupons for verified, high-priority reports.`;
+            }
+            if (lowerMessage.includes("hello") || lowerMessage.includes("hi")) {
+                return "Hello! I am here to assist with tracking. What report ID can I check for you?";
+            }
+            
+            return "I focus on tracking existing complaints. Please ask about a specific report ID (e.g., 'Check ID 1a2b3c4d').";
+        };
+
+        // --- View 5 & 6: Organization Registration/Login (Minor updates) ---
+        const renderOrgRegistration = () => {
+            contentDiv.innerHTML = `
+                <div class="flex flex-col items-center justify-center p-6 min-h-[500px]">
+                    <h2 class="text-2xl font-extrabold text-red-600 mb-6">Register Authority Account</h2>
+                    <p class="text-sm text-gray-500 mb-4 text-center">Register your department (City) or internal entity (University, Hospital).</p>
+                    <div id="reg_message" class="text-red-600 mb-4 text-center font-medium"></div>
+
+                    <div class="w-full max-w-sm bg-white p-6 rounded-xl shadow-lg space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Organization Name (e.g., Parks Dept, University)</label>
+                            <input id="orgRegName" type="text" placeholder="Organization Name" class="mt-1 p-3 w-full border border-gray-300 rounded-md">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Unique Admin ID (e.g., parks_admin, **university**)</label>
+                            <input id="orgRegId" type="text" placeholder="Unique ID (for login/context)" class="mt-1 p-3 w-full border border-gray-300 rounded-md">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Password</label>
+                            <input id="orgRegPass" type="password" placeholder="Secure Password" class="mt-1 p-3 w-full border border-gray-300 rounded-md">
+                        </div>
+                        ${createButton('Complete Registration', 'handleOrgRegistration()', 'bg-red-600 text-white hover:bg-red-700 mt-4')}
+                        ${createButton('Back to Login', `router.navigate('org_login')`, 'bg-gray-200 text-gray-700 hover:bg-gray-300 mt-2')}
+                    </div>
+                </div>
+            `;
+        };
+
+        const handleOrgRegistration = () => {
+            const orgName = document.getElementById('orgRegName').value.trim();
+            const orgId = document.getElementById('orgRegId').value.trim();
+            const orgPass = document.getElementById('orgRegPass').value.trim();
+            const msgDiv = document.getElementById('reg_message');
+
+            if (!orgName || !orgId || !orgPass) {
+                msgDiv.className = 'text-red-600 mb-4 text-center font-medium';
+                msgDiv.textContent = 'All fields are required.';
+                return;
+            }
+
+            if (state.organizations.some(o => o.id === orgId)) {
+                msgDiv.className = 'text-red-600 mb-4 text-center font-medium';
+                msgDiv.textContent = `The Admin ID '${orgId}' is already taken.`;
+                return;
+            }
+
+            // Register the new organization
+            state.organizations.push({ id: orgId, name: orgName, password: orgPass });
+            saveState();
+
+            msgDiv.className = 'text-green-600 mb-4 text-center font-medium';
+            msgDiv.textContent = `Registration successful for ${orgName}! Redirecting to login.`;
+            
+            // Redirect to login after a delay
+            setTimeout(() => router.navigate('org_login'), 1500);
+        };
+
+        const renderOrgLogin = () => {
+            state.orgLoggedIn = null; // Clear previous login
+            contentDiv.innerHTML = `
+                <div class="flex flex-col items-center justify-center p-6 min-h-[500px]">
+                    <h2 class="text-2xl font-extrabold text-red-600 mb-6">Authority Login</h2>
+                    <p class="text-sm text-gray-500 mb-4 text-center">Use **university/student** or **pubworks/password** to test.</p>
+                    <div id="org_error" class="text-red-600 mb-4 text-center font-medium"></div>
+
+                    <div class="w-full max-w-sm bg-white p-6 rounded-xl shadow-lg space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Admin ID</label>
+                            <input id="orgId" type="text" value="university" class="mt-1 p-3 w-full border border-gray-300 rounded-md">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Password</label>
+                            <input id="orgPass" type="password" value="student" class="mt-1 p-3 w-full border border-gray-300 rounded-md">
+                        </div>
+                        ${createButton('Log In to Dashboard', 'handleOrgLogin()', 'bg-red-600 text-white hover:bg-red-700 mt-4')}
+                        ${createButton('Register Organization', `router.navigate('org_register')`, 'bg-red-100 text-red-600 hover:bg-red-200')}
+                        ${createButton('Back to Home', `router.navigate('home')`, 'bg-gray-200 text-gray-700 hover:bg-gray-300')}
+                    </div>
+                </div>
+            `;
+        };
+
+        const handleOrgLogin = () => {
+            const orgId = document.getElementById('orgId').value;
+            const orgPass = document.getElementById('orgPass').value;
+            const errorDiv = document.getElementById('org_error');
+
+            const org = state.organizations.find(o => o.id === orgId && o.password === orgPass);
+
+            if (org) {
+                state.orgLoggedIn = org;
+                errorDiv.className = 'text-green-600 mb-4 text-center font-medium';
+                errorDiv.textContent = `Welcome, ${org.name}! Redirecting...`;
+                // Redirect to the new menu dashboard
+                setTimeout(() => router.navigate('org_dashboard'), 1000); 
+            } else {
+                errorDiv.className = 'text-red-600 mb-4 text-center font-medium';
+                errorDiv.textContent = 'Login failed. Invalid ID or Password.';
+            }
+        };
+
+        // --- View 7: Organization Dashboard (Updated Menu) ---
+        const renderOrgDashboard = () => {
+            if (!state.orgLoggedIn) {
+                return router.navigate('org_login');
+            }
+
+            contentDiv.innerHTML = `
+                <div class="space-y-6 p-4">
+                    <h3 class="text-2xl font-bold text-gray-800 text-center">Welcome, ${state.orgLoggedIn.name} Admin</h3>
+                    <p class="text-gray-500 text-center">Select an action to manage urban reports in your context.</p>
+
+                    <div class="grid grid-cols-1 gap-4 mt-6">
+                        <!-- Option 1: View and Track Complaints -->
+                        <div onclick="router.navigate('org_complaint_management')" 
+                             class="bg-red-50 p-6 rounded-xl shadow-md cursor-pointer hover:bg-red-100 transition duration-200 transform hover:scale-[1.01] border-l-4 border-red-600">
+                            <h4 class="text-xl font-bold text-red-700">View & Track Complaints</h4>
+                            <p class="text-gray-600 mt-1">Review and update status for all relevant reports.</p>
+                        </div>
+
+                        <!-- Option 2: Analytics & Reporting (Now Functional) -->
+                        <div onclick="router.navigate('org_analytics')"
+                            class="bg-red-50 p-6 rounded-xl shadow-md cursor-pointer hover:bg-red-100 transition duration-200 transform hover:scale-[1.01] border-l-4 border-amber-500">
+                            <h4 class="text-xl font-bold text-amber-700">Analytics & Reporting</h4>
+                            <p class="text-gray-600 mt-1">Visualize key metrics, priority trends, and resolution performance.</p>
+                        </div>
+                    </div>
+
+                    ${createButton('Log Out', 'handleOrgLogout()', 'bg-gray-500 text-white hover:bg-gray-600 mt-8')}
+                </div>
+            `;
+        };
+
+        // --- Helper: Get Relevant Complaints for Logged-in Org ---
+        const getRelevantComplaints = () => {
+            const orgId = state.orgLoggedIn.id;
+            const orgName = state.orgLoggedIn.name;
+
+            // Filter logic:
+            // 1. Complaint's context matches the organization's ID (e.g., a report submitted to 'university' context goes to 'university' admin)
+            // 2. OR, the complaint is City-wide AND the department matches the organization's name (e.g., 'Public Works' admin gets City-wide potholes routed to 'Public Works')
+            return state.complaints.filter(c => 
+                c.organizationContext === orgId || 
+                (c.organizationContext === 'City-wide' && c.department.includes(orgName))
+            );
+        }
+
+        // --- View 8: Organization Complaint Management (Updated Filtering) ---
+        const renderOrgComplaintManagement = () => {
+            if (!state.orgLoggedIn) {
+                return router.navigate('org_login');
+            }
+
+            const relevantComplaints = getRelevantComplaints()
+                .sort((a, b) => b.priorityScore - a.priorityScore); // Priority Score Sorting
+            
+            const complaintsList = relevantComplaints.length === 0 
+                ? '<p class="text-center text-gray-500 py-8">No relevant reports found for your organization.</p>'
+                : relevantComplaints.map(c => {
+                    const borderStyle = `border-l-4 border-[${c.deptColor}]`;
+                    const contextTag = c.organizationContext === state.orgLoggedIn.id ? 
+                                       `<span class="text-xs font-bold text-red-600"> (YOUR CONTEXT)</span>` : '';
+                    
+                    return `
+                        <div class="p-3 mb-3 bg-white rounded-lg shadow-sm ${borderStyle} transition duration-150 hover:shadow-md">
+                            <div class="flex justify-between items-center">
+                                <p class="font-bold text-gray-800">${c.title}${contextTag}</p>
+                                <span class="text-xs font-semibold px-2 py-0.5 rounded-full text-white ${c.status === 'Resolved' ? 'bg-green-500' : c.status === 'In Progress' ? 'bg-amber-500' : 'bg-gray-500'}">${c.status}</span>
+                            </div>
+                            <p class="text-xs text-gray-600 mt-1">ID: <span class="font-mono">${c.id}</span> | Priority: <span class="font-bold text-red-600">${c.priorityScore}</span></p>
+                            <p class="text-xs text-gray-500">Routed Dept: ${c.department} | Context: ${c.organizationContext}</p>
+                            <p class="text-xs text-gray-400">Location: ${c.location} | Geo: ${c.getGeolocation()}</p>
+                        </div>
+                    `;
+                }).join('');
+
+            contentDiv.innerHTML = `
+                <div class="space-y-6">
+                    <h3 class="text-xl font-bold text-gray-800 text-center">${state.orgLoggedIn.name} Report Management</h3>
+                    <div id="updateMessage" class="hidden p-3 rounded-lg font-medium text-center"></div>
+
+                    <!-- Complaint Update Panel (Track Complaints) -->
+                    <div class="bg-gray-100 p-4 rounded-xl shadow-inner">
+                        <h4 class="text-lg font-semibold text-red-600 mb-3">Update Tracking Status</h4>
+                        <div class="flex space-x-2">
+                            <input id="trackId" type="text" placeholder="Complaint ID (e.g., ${relevantComplaints[0]?.id || '1a2b3c4d'})" class="p-2 border border-gray-300 rounded-lg w-1/3">
+                            <select id="newStatus" class="p-2 border border-gray-300 rounded-lg w-1/3">
+                                <option value="Submitted">Submitted</option>
+                                <option value="In Progress">In Progress</option>
+                                <option value="Resolved">Resolved</option>
+                            </select>
+                            <button onclick="handleStatusUpdate()" class="bg-red-600 text-white p-2 rounded-lg font-semibold w-1/3 hover:bg-red-700 transition">Update</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Complaint List (View Complaints) -->
+                    <div class="bg-gray-100 p-4 rounded-xl shadow-lg">
+                        <h4 class="text-xl font-semibold text-gray-700 border-b pb-2 mb-3">Relevant Reports (${relevantComplaints.length})</h4>
+                        <div class="max-h-96 overflow-y-auto">
+                            ${complaintsList}
+                        </div>
+                    </div>
+                    
+                    ${createButton('Back to Dashboard', `router.navigate('org_dashboard')`, 'bg-gray-500 text-white hover:bg-gray-600 mt-4')}
+                </div>
+            `;
+        };
+
+        const handleStatusUpdate = () => {
+            const id = document.getElementById('trackId').value.trim();
+            const newStatus = document.getElementById('newStatus').value;
+            const msgDiv = document.getElementById('updateMessage');
+
+            if (!id) {
+                msgDiv.className = 'p-3 rounded-lg font-medium text-red-700 bg-red-100 block';
+                msgDiv.textContent = 'Please enter a Complaint ID.';
+                return;
+            }
+
+            if (updateComplaintStatus(id, newStatus)) {
+                msgDiv.className = 'p-3 rounded-lg font-medium text-green-700 bg-green-100 block';
+                msgDiv.textContent = `Status for ID ${id} updated to **${newStatus}**.`;
+                // Re-render the management view to update the list
+                setTimeout(() => router.navigate('org_complaint_management'), 500); 
+            } else {
+                msgDiv.className = 'p-3 rounded-lg font-medium text-red-700 bg-red-100 block';
+                msgDiv.textContent = `Error: Complaint ID ${id} not found.`;
+            }
+        };
+
+        const handleOrgLogout = () => {
+            state.orgLoggedIn = null;
+            router.navigate('home');
+        };
+
+        // --- View 9: Organization Analytics (NEW) ---
+        const renderOrgAnalytics = () => {
+            if (!state.orgLoggedIn) {
+                return router.navigate('org_login');
+            }
+
+            const relevantComplaints = getRelevantComplaints();
+            const total = relevantComplaints.length;
+            
+            // 1. Status Breakdown
+            const statusCounts = relevantComplaints.reduce((acc, c) => {
+                acc[c.status] = (acc[c.status] || 0) + 1;
+                return acc;
+            }, {});
+
+            const statusColors = {
+                'Resolved': { class: 'bg-green-500', value: statusCounts['Resolved'] || 0 },
+                'In Progress': { class: 'bg-amber-500', value: statusCounts['In Progress'] || 0 },
+                'Submitted': { class: 'bg-gray-500', value: statusCounts['Submitted'] || 0 }
+            };
+
+            const statusChartHtml = Object.keys(statusColors).map(status => {
+                const count = statusColors[status].value;
+                const percentage = total > 0 ? ((count / total) * 100).toFixed(0) : 0;
+                return `
+                    <div class="flex items-center space-x-2">
+                        <span class="w-24 text-sm font-medium">${status}:</span>
+                        <div class="w-full bg-gray-200 rounded-full">
+                            <div class="chart-bar ${statusColors[status].class}" style="width: ${percentage}%"></div>
+                        </div>
+                        <span class="text-sm font-semibold w-12 text-right">${count} (${percentage}%)</span>
+                    </div>
+                `;
+            }).join('');
+
+            // 2. Priority Distribution
+            const avgPriority = total > 0 ? (relevantComplaints.reduce((sum, c) => sum + c.priorityScore, 0) / total).toFixed(1) : 0;
+            const highPriority = relevantComplaints.filter(c => c.priorityScore >= 75).length;
+            const highPriorityPercent = total > 0 ? ((highPriority / total) * 100).toFixed(0) : 0;
+            
+            // 3. Mock Resolution Time
+            const resolvedComplaints = relevantComplaints.filter(c => c.status === 'Resolved');
+            const avgResolutionTime = resolvedComplaints.length > 0 ? 
+                (resolvedComplaints.reduce((sum, c) => sum + c.mockResolutionDays, 0) / resolvedComplaints.length).toFixed(1) : 'N/A';
+            
+
+            contentDiv.innerHTML = `
+                <div class="space-y-6">
+                    <h3 class="text-2xl font-bold text-amber-700 text-center border-b pb-2">Performance Analytics</h3>
+
+                    <!-- Key Metrics -->
+                    <div class="grid grid-cols-2 gap-3 text-center">
+                        <div class="bg-white p-4 rounded-xl shadow-md border-b-4 border-cyan-500">
+                            <p class="text-sm text-gray-500">Total Reports</p>
+                            <p class="text-3xl font-extrabold text-cyan-600 mt-1">${total}</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl shadow-md border-b-4 border-red-500">
+                            <p class="text-sm text-gray-500">Avg Priority Score</p>
+                            <p class="text-3xl font-extrabold text-red-600 mt-1">${avgPriority}</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl shadow-md border-b-4 border-green-500 col-span-2">
+                            <p class="text-sm text-gray-500">Avg Resolution Time (Resolved)</p>
+                            <p class="text-3xl font-extrabold text-green-600 mt-1">${avgResolutionTime} days</p>
+                        </div>
+                    </div>
+
+                    <!-- Status Chart -->
+                    <div class="bg-white p-4 rounded-xl shadow-lg">
+                        <h4 class="text-xl font-semibold text-gray-700 mb-3">Report Status Breakdown</h4>
+                        <div class="space-y-3">
+                            ${statusChartHtml}
+                        </div>
+                    </div>
+
+                    <!-- Priority Trend -->
+                    <div class="bg-white p-4 rounded-xl shadow-lg">
+                        <h4 class="text-xl font-semibold text-gray-700 mb-3">High Priority Volume (>= 75)</h4>
+                        <div class="flex items-center space-x-4 mt-4">
+                            <div class="text-4xl font-extrabold text-red-600">${highPriority}</div>
+                            <div class="flex-grow w-full bg-red-100 rounded-full">
+                                <div class="chart-bar bg-red-500" style="width: ${highPriorityPercent}%"></div>
+                            </div>
+                            <div class="text-xl font-semibold text-red-600">${highPriorityPercent}%</div>
+                        </div>
+                    </div>
+
+                    ${createButton('Back to Dashboard', `router.navigate('org_dashboard')`, 'bg-gray-500 text-white hover:bg-gray-600 mt-4')}
+                </div>
+            `;
+        };
+        
+        // --- 3. INITIALIZATION ---
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadState(); // Load data from localStorage
+            
+            // Add initial mock data if starting fresh
+            if (state.complaints.length === 0) {
+                // City-wide issues routed to city departments
+                submitComplaint("Major Pothole", "123 Main St, Central District", "pothole_image.jpg", "City-wide");
+                submitComplaint("Broken Street Light", "Near Library Entrance", "street_light_out.jpeg", "City-wide");
+                // University issues routed to University context
+                submitComplaint("Broken light in Block 3", "University, Block 3 Hallway", "broken_light_image.jpg", "university");
+                submitComplaint("Vandalism near cafeteria", "University, Cafeteria Wall", "graffiti_tag.png", "university");
+            }
+
+            router.navigate('home'); // Start on the home screen
+        });
+    </script>
+</body>
+</html>

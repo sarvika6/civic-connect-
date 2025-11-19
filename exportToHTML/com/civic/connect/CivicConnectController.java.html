@@ -1,0 +1,136 @@
+<html>
+<head>
+<title>CivicConnectController.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #5f826b; font-style: italic;}
+.s4 { color: #6aab73;}
+.s5 { color: #7a7e85;}
+.s6 { color: #67a37c; font-style: italic;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+CivicConnectController.java</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">com</span><span class="s2">.</span><span class="s1">civic</span><span class="s2">.</span><span class="s1">connect</span><span class="s2">;</span>
+
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">List</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">Map</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">Optional</span><span class="s2">;</span>
+
+<span class="s0">import </span><span class="s1">org</span><span class="s2">.</span><span class="s1">springframework</span><span class="s2">.</span><span class="s1">beans</span><span class="s2">.</span><span class="s1">factory</span><span class="s2">.</span><span class="s1">annotation</span><span class="s2">.</span><span class="s1">Autowired</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">org</span><span class="s2">.</span><span class="s1">springframework</span><span class="s2">.</span><span class="s1">http</span><span class="s2">.</span><span class="s1">HttpStatus</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">org</span><span class="s2">.</span><span class="s1">springframework</span><span class="s2">.</span><span class="s1">http</span><span class="s2">.</span><span class="s1">ResponseEntity</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">org</span><span class="s2">.</span><span class="s1">springframework</span><span class="s2">.</span><span class="s1">web</span><span class="s2">.</span><span class="s1">bind</span><span class="s2">.</span><span class="s1">annotation</span><span class="s2">.*;</span>
+
+<span class="s3">/**</span>
+ <span class="s3">* CivicConnectController:</span>
+ <span class="s3">* This layer handles incoming HTTP requests and maps them to the appropriate</span>
+ <span class="s3">* methods in the CivicConnectService.</span>
+ <span class="s3">* All endpoints are prefixed with /api/v1</span>
+ <span class="s3">*/</span>
+<span class="s1">@RestController</span>
+<span class="s1">@RequestMapping</span><span class="s2">(</span><span class="s4">&quot;/api/v1&quot;</span><span class="s2">)</span>
+<span class="s1">@CrossOrigin</span><span class="s2">(</span><span class="s1">origins </span><span class="s2">= </span><span class="s4">&quot;http://localhost:8080&quot;</span><span class="s2">) </span><span class="s5">// Allows the frontend HTML to access the API</span>
+<span class="s0">public class </span><span class="s1">CivicConnectController </span><span class="s2">{</span>
+
+    <span class="s0">private final </span><span class="s1">CivicConnectService service</span><span class="s2">;</span>
+
+    <span class="s5">// Spring automatically injects the service instance</span>
+    <span class="s1">@Autowired</span>
+    <span class="s0">public </span><span class="s1">CivicConnectController</span><span class="s2">(</span><span class="s1">CivicConnectService service</span><span class="s2">) {</span>
+        <span class="s0">this</span><span class="s2">.</span><span class="s1">service </span><span class="s2">= </span><span class="s1">service</span><span class="s2">;</span>
+    <span class="s2">}</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* POST /api/v1/complaints/submit</span>
+     <span class="s3">* Endpoint for citizens to submit a new complaint.</span>
+     <span class="s3">* </span><span class="s6">@param </span><span class="s3">dto The complaint data from the frontend.</span>
+     <span class="s3">* </span><span class="s6">@return </span><span class="s3">The fully processed Complaint object including AI results.</span>
+     <span class="s3">*/</span>
+    <span class="s1">@PostMapping</span><span class="s2">(</span><span class="s4">&quot;/complaints/submit&quot;</span><span class="s2">)</span>
+    <span class="s0">public </span><span class="s1">ResponseEntity</span><span class="s2">&lt;</span><span class="s1">Complaint</span><span class="s2">&gt; </span><span class="s1">submitComplaint</span><span class="s2">(</span><span class="s1">@RequestBody ComplaintSubmissionDto dto</span><span class="s2">) {</span>
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">dto</span><span class="s2">.</span><span class="s1">title</span><span class="s2">() == </span><span class="s0">null </span><span class="s2">|| </span><span class="s1">dto</span><span class="s2">.</span><span class="s1">title</span><span class="s2">().</span><span class="s1">isEmpty</span><span class="s2">() || </span><span class="s1">dto</span><span class="s2">.</span><span class="s1">location</span><span class="s2">() == </span><span class="s0">null </span><span class="s2">|| </span><span class="s1">dto</span><span class="s2">.</span><span class="s1">location</span><span class="s2">().</span><span class="s1">isEmpty</span><span class="s2">()) {</span>
+            <span class="s0">return new </span><span class="s1">ResponseEntity</span><span class="s2">&lt;&gt;(</span><span class="s1">HttpStatus</span><span class="s2">.</span><span class="s1">BAD_REQUEST</span><span class="s2">);</span>
+        <span class="s2">}</span>
+        <span class="s1">Complaint newComplaint </span><span class="s2">= </span><span class="s1">service</span><span class="s2">.</span><span class="s1">processAndSaveComplaint</span><span class="s2">(</span><span class="s1">dto</span><span class="s2">);</span>
+        <span class="s5">// Returns the created complaint with ID, Priority, and Reward</span>
+        <span class="s0">return new </span><span class="s1">ResponseEntity</span><span class="s2">&lt;&gt;(</span><span class="s1">newComplaint</span><span class="s2">, </span><span class="s1">HttpStatus</span><span class="s2">.</span><span class="s1">CREATED</span><span class="s2">);</span>
+    <span class="s2">}</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* GET /api/v1/complaints/dashboard/{userId}</span>
+     <span class="s3">* Retrieves all complaints for a specific user to display on their dashboard.</span>
+     <span class="s3">* (Note: This is mock implementation, retrieving ALL complaints for the simplicity of the single-user app)</span>
+     <span class="s3">* </span><span class="s6">@return </span><span class="s3">A list of all complaints.</span>
+     <span class="s3">*/</span>
+    <span class="s1">@GetMapping</span><span class="s2">(</span><span class="s4">&quot;/complaints/all&quot;</span><span class="s2">)</span>
+    <span class="s0">public </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Complaint</span><span class="s2">&gt; </span><span class="s1">getAllComplaints</span><span class="s2">() {</span>
+        <span class="s5">// In this mock setup, we return all data for the client-side filtering logic</span>
+        <span class="s0">return </span><span class="s1">service</span><span class="s2">.</span><span class="s1">getAllComplaints</span><span class="s2">();</span>
+    <span class="s2">}</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* POST /api/v1/org/login</span>
+     <span class="s3">* Mock login for Organization users (e.g., Public Works).</span>
+     <span class="s3">* </span><span class="s6">@param </span><span class="s3">user The OrgLoginDto containing orgId and password.</span>
+     <span class="s3">* </span><span class="s6">@return </span><span class="s3">200 OK with success message or 401 Unauthorized.</span>
+     <span class="s3">*/</span>
+    <span class="s1">@PostMapping</span><span class="s2">(</span><span class="s4">&quot;/org/login&quot;</span><span class="s2">)</span>
+    <span class="s0">public </span><span class="s1">ResponseEntity</span><span class="s2">&lt;</span><span class="s1">Map</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">, </span><span class="s1">String</span><span class="s2">&gt;&gt; </span><span class="s1">loginOrg</span><span class="s2">(</span><span class="s1">@RequestBody OrgLoginDto user</span><span class="s2">) {</span>
+
+        <span class="s5">// Find if the submitted orgId matches a mocked credential</span>
+        <span class="s1">Optional</span><span class="s2">&lt;</span><span class="s1">OrgLoginDto</span><span class="s2">&gt; </span><span class="s1">foundUser </span><span class="s2">= </span><span class="s1">service</span><span class="s2">.</span><span class="s1">mockAuthStore</span><span class="s2">.</span><span class="s1">stream</span><span class="s2">()</span>
+                <span class="s2">.</span><span class="s1">filter</span><span class="s2">(</span><span class="s1">u -&gt; u</span><span class="s2">.</span><span class="s1">orgId</span><span class="s2">().</span><span class="s1">equalsIgnoreCase</span><span class="s2">(</span><span class="s1">user</span><span class="s2">.</span><span class="s1">orgId</span><span class="s2">()))</span>
+                <span class="s2">.</span><span class="s1">findFirst</span><span class="s2">();</span>
+
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">foundUser</span><span class="s2">.</span><span class="s1">isPresent</span><span class="s2">() &amp;&amp; </span><span class="s1">foundUser</span><span class="s2">.</span><span class="s1">get</span><span class="s2">().</span><span class="s1">password</span><span class="s2">().</span><span class="s1">equals</span><span class="s2">(</span><span class="s1">user</span><span class="s2">.</span><span class="s1">password</span><span class="s2">())) { </span><span class="s5">// FIXED: Use password()</span>
+            <span class="s5">// Success: Return the organization context ID</span>
+            <span class="s0">return </span><span class="s1">ResponseEntity</span><span class="s2">.</span><span class="s1">ok</span><span class="s2">(</span><span class="s1">Map</span><span class="s2">.</span><span class="s1">of</span><span class="s2">(</span><span class="s4">&quot;message&quot;</span><span class="s2">, </span><span class="s4">&quot;Login successful&quot;</span><span class="s2">, </span><span class="s4">&quot;orgId&quot;</span><span class="s2">, </span><span class="s1">user</span><span class="s2">.</span><span class="s1">orgId</span><span class="s2">()));</span>
+        <span class="s2">} </span><span class="s0">else </span><span class="s2">{</span>
+            <span class="s5">// Failure</span>
+            <span class="s0">return </span><span class="s1">ResponseEntity</span><span class="s2">.</span><span class="s1">status</span><span class="s2">(</span><span class="s1">HttpStatus</span><span class="s2">.</span><span class="s1">UNAUTHORIZED</span><span class="s2">).</span><span class="s1">body</span><span class="s2">(</span><span class="s1">Map</span><span class="s2">.</span><span class="s1">of</span><span class="s2">(</span><span class="s4">&quot;message&quot;</span><span class="s2">, </span><span class="s4">&quot;Invalid credentials&quot;</span><span class="s2">));</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* GET /api/v1/org/complaints/{orgId}</span>
+     <span class="s3">* Retrieves complaints relevant to the logged-in organization.</span>
+     <span class="s3">* </span><span class="s6">@param </span><span class="s3">orgId The ID of the organization (e.g., 'university' or 'pubworks').</span>
+     <span class="s3">* </span><span class="s6">@return </span><span class="s3">A list of filtered, prioritized complaints.</span>
+     <span class="s3">*/</span>
+    <span class="s1">@GetMapping</span><span class="s2">(</span><span class="s4">&quot;/org/complaints/{orgId}&quot;</span><span class="s2">)</span>
+    <span class="s0">public </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Complaint</span><span class="s2">&gt; </span><span class="s1">getOrgComplaints</span><span class="s2">(</span><span class="s1">@PathVariable String orgId</span><span class="s2">) {</span>
+        <span class="s0">return </span><span class="s1">service</span><span class="s2">.</span><span class="s1">getComplaintsByOrganizationId</span><span class="s2">(</span><span class="s1">orgId</span><span class="s2">);</span>
+    <span class="s2">}</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* PUT /api/v1/org/status/update</span>
+     <span class="s3">* Endpoint for organizations to update the status of a complaint.</span>
+     <span class="s3">* </span><span class="s6">@param </span><span class="s3">updateMap A map containing &quot;id&quot; and &quot;status&quot; fields.</span>
+     <span class="s3">* </span><span class="s6">@return </span><span class="s3">The updated complaint or 404 Not Found.</span>
+     <span class="s3">*/</span>
+    <span class="s1">@PutMapping</span><span class="s2">(</span><span class="s4">&quot;/org/status/update&quot;</span><span class="s2">)</span>
+    <span class="s0">public </span><span class="s1">ResponseEntity</span><span class="s2">&lt;</span><span class="s1">Complaint</span><span class="s2">&gt; </span><span class="s1">updateComplaintStatus</span><span class="s2">(</span><span class="s1">@RequestBody Map</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">, </span><span class="s1">String</span><span class="s2">&gt; </span><span class="s1">updateMap</span><span class="s2">) {</span>
+        <span class="s1">String id </span><span class="s2">= </span><span class="s1">updateMap</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s4">&quot;id&quot;</span><span class="s2">);</span>
+        <span class="s1">String status </span><span class="s2">= </span><span class="s1">updateMap</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s4">&quot;status&quot;</span><span class="s2">);</span>
+
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">id </span><span class="s2">== </span><span class="s0">null </span><span class="s2">|| </span><span class="s1">status </span><span class="s2">== </span><span class="s0">null</span><span class="s2">) {</span>
+            <span class="s0">return new </span><span class="s1">ResponseEntity</span><span class="s2">&lt;&gt;(</span><span class="s1">HttpStatus</span><span class="s2">.</span><span class="s1">BAD_REQUEST</span><span class="s2">);</span>
+        <span class="s2">}</span>
+
+        <span class="s1">Optional</span><span class="s2">&lt;</span><span class="s1">Complaint</span><span class="s2">&gt; </span><span class="s1">updated </span><span class="s2">= </span><span class="s1">service</span><span class="s2">.</span><span class="s1">updateComplaintStatus</span><span class="s2">(</span><span class="s1">id</span><span class="s2">, </span><span class="s1">status</span><span class="s2">);</span>
+
+        <span class="s0">return </span><span class="s1">updated</span><span class="s2">.</span><span class="s1">map</span><span class="s2">(</span><span class="s1">complaint -&gt; </span><span class="s0">new </span><span class="s1">ResponseEntity</span><span class="s2">&lt;&gt;(</span><span class="s1">complaint</span><span class="s2">, </span><span class="s1">HttpStatus</span><span class="s2">.</span><span class="s1">OK</span><span class="s2">))</span>
+                <span class="s2">.</span><span class="s1">orElseGet</span><span class="s2">(() </span><span class="s1">-&gt; </span><span class="s0">new </span><span class="s1">ResponseEntity</span><span class="s2">&lt;&gt;(</span><span class="s1">HttpStatus</span><span class="s2">.</span><span class="s1">NOT_FOUND</span><span class="s2">));</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+</pre>
+</body>
+</html>

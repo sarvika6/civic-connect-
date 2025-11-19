@@ -1,0 +1,51 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <!-- 1. PARENT: Imports all default Spring Boot settings (versions, configurations) -->
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>3.2.0</version>
+    <relativePath/>
+  </parent>
+
+  <!-- 2. PROJECT METADATA -->
+  <groupId>com.civic</groupId>
+  <artifactId>connect</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <name>civic-connect</name>
+  <description>Full-stack civic reporting application</description>
+
+  <!-- Defines the required Java version -->
+  <properties>
+    <java.version>17</java.version>
+  </properties>
+
+  <!-- 3. DEPENDENCIES: The external libraries we need -->
+  <dependencies>
+    <!-- REQUIRED: Provides the embedded Tomcat server and RESTful capabilities -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <!-- Standard testing dependency (optional but good practice) -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <!-- 4. BUILD PLUGINS: How to compile and package the app -->
+  <build>
+    <plugins>
+      <!-- REQUIRED: Creates the single, executable (Fat) JAR file -->
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
+</project>
